@@ -14,4 +14,4 @@ def main():
         guess_number_tx = vrf_contract.play(2, account.address, transaction_details)
         return guess_number_tx
     except:
-        print("Tal vez no estas apostando la suficiente cantidad")
+        print("Tal vez no estas apostando la cantidad suficiente de ETH")
