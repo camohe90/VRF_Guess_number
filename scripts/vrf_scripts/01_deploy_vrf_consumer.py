@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from brownie import VRFConsumerV2, config, network
+from brownie import VRFConsumerV2, config, network, Wei
 from scripts.helpful_scripts import (
     get_account,
     get_contract,
@@ -7,7 +7,7 @@ from scripts.helpful_scripts import (
 )
 
 
-def depoly_vrf_consumer():
+def deploy_vrf_consumer():
     account = get_account()
     print(f"On network {network.show_active()}")
     subscription_id = config["networks"][network.show_active()]["subscription_id"]
@@ -22,7 +22,7 @@ def depoly_vrf_consumer():
         vrf_coordinator,
         link_token,
         gas_lane,  # Also known as keyhash
-        {"from": account},
+        {"from": account,'value': Wei('0.1 ether')},
     )
     if config["networks"][network.show_active()].get("verify", False):
         vrf_consumer.tx.wait(BLOCK_CONFIRMATIONS_FOR_VERIFICATION)
@@ -50,7 +50,7 @@ def add_vrf_consumer_to_subscription(subscription_id, vrf_consumer):
 
 
 def main():
-    vrf_consumer = depoly_vrf_consumer()
+    vrf_consumer = deploy_vrf_consumer()
     vrf_consumer = VRFConsumerV2[-1]
     if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
         add_vrf_consumer_to_subscription(

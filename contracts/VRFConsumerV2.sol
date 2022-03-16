@@ -11,16 +11,22 @@ import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
  * @notice A contract that gets random values from Chainlink VRF V2
  */
 contract VRFConsumerV2 is VRFConsumerBaseV2 {
-  VRFCoordinatorV2Interface immutable COORDINATOR;
-  LinkTokenInterface immutable LINKTOKEN;
+    VRFCoordinatorV2Interface immutable COORDINATOR;
+    LinkTokenInterface immutable LINKTOKEN;
 
-  // Your subscription ID.
-  uint64 immutable s_subscriptionId;
+    address payable player;
+    enum State {OPEN, COMPLETE}
+    State public currState;
+    uint public secretNumber;
+    uint public balance;
 
-  // The gas lane to use, which specifies the maximum gas price to bump to.
-  // For a list of available gas lanes on each network,
-  // see https://docs.chain.link/docs/vrf-contracts/#configurations
-  bytes32 immutable s_keyHash;
+    // Your subscription ID.
+    uint64 immutable s_subscriptionId;
+
+    // The gas lane to use, which specifies the maximum gas price to bump to.
+    // For a list of available gas lanes on each network,
+    // see https://docs.chain.link/docs/vrf-contracts/#configurations
+    bytes32 immutable s_keyHash;
 
   // Depends on the number of requested values that you want sent to the
   // fulfillRandomWords() function. Storing each word costs about 20,000 gas,
@@ -55,12 +61,15 @@ contract VRFConsumerV2 is VRFConsumerBaseV2 {
     address vrfCoordinator,
     address link,
     bytes32 keyHash
-  ) VRFConsumerBaseV2(vrfCoordinator) {
+  ) VRFConsumerBaseV2(vrfCoordinator)payable {
+    require(msg.value >= 0.1 ether, 'contract needs to be fund with at leats 0.1 eth');
     COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
     LINKTOKEN = LinkTokenInterface(link);
     s_keyHash = keyHash;
     s_owner = msg.sender;
     s_subscriptionId = subscriptionId;
+    currState = State.OPEN;
+    balance = balance + msg.value;
   }
 
   /**
@@ -86,8 +95,21 @@ contract VRFConsumerV2 is VRFConsumerBaseV2 {
    */
   function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
     s_randomWords = randomWords;
+    secretNumber = (s_randomWords[0] %20) + 1;
     emit ReturnedRandomness(randomWords);
   }
+
+  function play(uint guesessNumber, address _player) external payable{
+            require(msg.value >= 0.1 ether, 'you must pay to play');
+            require(currState == State.OPEN,'there is not money in this contract');
+            player = payable(_player);
+            balance = balance + msg.value;
+            if (guesessNumber == secretNumber){
+                player.transfer(address(this).balance);
+                currState = State.COMPLETE;
+                balance = 0;
+            }
+        }
 
   modifier onlyOwner() {
     require(msg.sender == s_owner);

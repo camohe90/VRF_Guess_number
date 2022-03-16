@@ -176,7 +176,7 @@ brownie run scripts/vrf_scripts/create_subscription.py --network rinkeby
 Before running the next scripts. Running `01_deploy_vrf` will also add your consumer contract to the registry.
 
 ```
-brownie run scripts/vrf_scripts/01_deploy_vrf.py --network rinkeby
+brownie run scripts/vrf_scripts/01_deploy_vrf_consumer.py --network rinkeby
 brownie run scripts/vrf_scripts/02_request_randomness.py --network rinkeby
 brownie run scripts/vrf_scripts/03_read_random_number.py --network rinkeby
 ```
